@@ -31,6 +31,46 @@ public class Demo2 {
             sum += i;
         }
         System.out.println(sum);
+        System.out.println(getRecursiveSum(iterableInt.spliterator(), 0));
+    }
+
+    private static AtomicInteger getRecursiveSum(Spliterator<Integer> spliteratorInt, int indent) {
+        String estimatedSizeString = getEstimatedSizeString(spliteratorInt);
+        System.out.println("|   ".repeat(indent) + "Length: " + estimatedSizeString);
+        AtomicInteger atomicSum = new AtomicInteger(0);
+        if (spliteratorInt.estimateSize() != Long.MAX_VALUE
+                || spliteratorInt.tryAdvance(atomicSum::addAndGet)) {
+            atomicSum.addAndGet(getRecursiveSum0(spliteratorInt, indent));
+        } else {
+            System.out.println("|   ".repeat(indent) + "Nothing left to do");
+        }
+        return atomicSum;
+    }
+
+    private static int getRecursiveSum0(Spliterator<Integer> spliteratorInt, int indent) {
+        if (spliteratorInt.estimateSize() > 8) {
+            Spliterator<Integer> leftSpliteratorInt = spliteratorInt.trySplit();
+            System.out.println("|   ".repeat(indent) + "Trying split with lengths " + getEstimatedSizeString(spliteratorInt) + " and " + getEstimatedSizeString(leftSpliteratorInt));
+
+            String hr = "|   ".repeat(indent) + "+" + "----".repeat(15 - indent);
+            System.out.println(hr);
+            AtomicInteger atomicLeft = getRecursiveSum(leftSpliteratorInt, indent + 1);
+            System.out.println(hr);
+            AtomicInteger atomicRight = getRecursiveSum(spliteratorInt, indent + 1);
+            System.out.println(hr);
+            System.out.println("|   ".repeat(indent) + "Combined sum: " + (atomicLeft.get() + atomicRight.get()));
+            return atomicLeft.get() + atomicRight.get();
+        }
+        AtomicInteger atomicSum = new AtomicInteger(0);
+        spliteratorInt.forEachRemaining(atomicSum::addAndGet);
+        int sum = atomicSum.get();
+        System.out.println("|   ".repeat(indent) + "Sum: " + sum);
+        return sum;
+    }
+
+    private static String getEstimatedSizeString(Spliterator<Integer> spliteratorInt) {
+        long estimatedSize = spliteratorInt.estimateSize();
+        return estimatedSize == Long.MAX_VALUE ? "Unknown" : Long.toString(estimatedSize);
     }
 
     private static Streamable<String> getStreamableString() {
