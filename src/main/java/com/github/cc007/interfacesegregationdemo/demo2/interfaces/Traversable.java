@@ -1,9 +1,8 @@
-package com.github.cc007.interfacesegregationdemo.demo2;
+package com.github.cc007.interfacesegregationdemo.demo2.interfaces;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * An interface that specifies that its content can be traversed and acted upon,
@@ -15,7 +14,7 @@ public interface Traversable<T> extends Streamable<T>, Iterable<T> {
         return new Traversable<T>() {
             @Override
             public Stream<T> stream() {
-                return StreamSupport.stream(iterable.spliterator(), false);
+                return Streamable.ofIterable(iterable).stream();
             }
 
             @Override

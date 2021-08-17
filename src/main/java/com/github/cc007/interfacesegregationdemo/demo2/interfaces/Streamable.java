@@ -1,4 +1,4 @@
-package com.github.cc007.interfacesegregationdemo.demo2;
+package com.github.cc007.interfacesegregationdemo.demo2.interfaces;
 
 import java.util.Collection;
 import java.util.stream.Stream;
