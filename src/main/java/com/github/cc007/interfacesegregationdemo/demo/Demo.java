@@ -17,25 +17,42 @@ import java.util.stream.Collectors;
 public class Demo {
 
     public static <SA extends Streamable<String> & Addable<String>,
-            IA extends Iterable<String> & BulkAddable<String>,
-            TS extends ThreadSafe & Streamable<String>>
+            IBA extends Iterable<String> & BulkAddable<String>>
     void main(String[] args) {
-        FeatureFactory featureFactory = new FeatureFactory();
+        // Some object that is capable of returning objects that implement certain feature interfaces.
+        FeatureFactory featureFactory = createFeatureFactory();
+
+        // Get an object that implements the RandomAccess, BulkAddable, Streamable and Iterable interfaces.
+        // Only use the fact that it is Streamable and Addable in the returned object.
         SA stringAddableStreamable = getStringRandomAccessBulkAddableStreamableIterable(featureFactory);
         stringAddableStreamable.add("Hello");
         stringAddableStreamable.add("World");
         System.out.println(stringAddableStreamable.stream().collect(Collectors.joining(" ")));
 
-        IA stringBulkAddableIterable = getStringNoRandomAccessBulkAddableStreamableIterable(featureFactory);
+        // Get an object that implements the BulkAddable, Streamable and Iterable interfaces
+        // and specifically doesn't implement RandomAccess.
+        // Only use the fact that it is Iterable and BulkAddable in the returned object.
+        IBA stringBulkAddableIterable = getStringNoRandomAccessBulkAddableStreamableIterable(featureFactory);
         stringBulkAddableIterable.addAll(new DelegateList<>(List.of("Lorum", "Ipsum", "Dolor", "Sit", "Amet")));
         printElements(stringBulkAddableIterable);
 
+        // Get an object that implements the ThreadSafe and Streamable interfaces.
+        // The feature ThreadSafe and object implementation were actually added to the feature factory
+        // in the createFeatureFactory, to show the dynamic nature of that class.
+        // Only use the fact that it is Streamable in the returned object.
+        Streamable<String> stringThreadsafeStreamable = getStringThreadsafeStreamable(featureFactory);
+        stringThreadsafeStreamable.stream().forEach(System.out::println);
+    }
+
+    private static FeatureFactory createFeatureFactory() {
+        FeatureFactory featureFactory = new FeatureFactory();
+
+        featureFactory.addSupportedFeature(ThreadSafe.class);
+
         CopyOnWriteList<String> stringCopyOnWriteList = new CopyOnWriteList<>();
         stringCopyOnWriteList.addAll(new DelegateList<>(List.of("Foo", "Bar")));
-        featureFactory.addSupportedFeature(ThreadSafe.class);
         featureFactory.putSupportedImpl(CopyOnWriteList.class, () -> stringCopyOnWriteList);
-        TS stringThreadsafeStreamable = getStringThreadsafeStreamable(featureFactory);
-        stringThreadsafeStreamable.stream().forEach(System.out::println);
+        return featureFactory;
     }
 
     private static <T extends Streamable<String> & BulkAddable<String> & Iterable<String> & RandomAccess>

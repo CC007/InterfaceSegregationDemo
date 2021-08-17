@@ -39,9 +39,9 @@ import java.util.stream.Stream;
 
 public class FeatureFactory {
 
-    private Map<Class<?>, Supplier<?>> supportedImpl;
+    private final Map<Class<?>, Supplier<?>> supportedImpl;
 
-    private Set<Class<?>> supportedFeatures;
+    private final Set<Class<?>> supportedFeatures;
 
     public FeatureFactory() {
         supportedFeatures = new HashSet<>(Set.of(
